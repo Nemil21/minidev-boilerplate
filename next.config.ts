@@ -28,22 +28,19 @@ const nextConfig: NextConfig = {
 
   /**
    * Security headers
-   * Allow embedding pages inside frames from your domain and localhost (any port).
+   * Allow embedding in iframes (required for Farcaster miniapp preview)
    */
   async headers() {
-    // Allow same-origin, your production domain, Vercel preview URLs, and localhost (HTTP/HTTPS, any port)
-    const frameAncestors =
-      "frame-ancestors 'self' https://minidev.fun https://*.minidev.fun https://*.vercel.app https://farcaster.xyz https://*.farcaster.xyz http://localhost:* http://127.0.0.1:* https://127.0.0.1:*";
-
     return [
       {
         source: "/:path*",
         headers: [
+          // Allow embedding from any origin
           {
             key: "Content-Security-Policy",
-            value: frameAncestors,
+            value: "frame-ancestors *",
           },
-          ],
+        ],
       },
     ];
   },

@@ -2,7 +2,7 @@
 
 import { useAccount, useConnect, useDisconnect } from "wagmi";
 import { truncateAddress } from "@/lib/utils";
-import { Button } from "../ui/button";
+import { Button } from "../ui/Button";
 
 export function ConnectWallet() {
   const { address, isConnected } = useAccount();

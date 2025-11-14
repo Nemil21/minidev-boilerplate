@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
+import { Button } from "@/components/ui/Button";
 import { useNeynar } from "@/hooks";
-import { Card, CardHeader, CardTitle, CardPanel } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardPanel } from "@/components/ui/Card";
 
 /**
  * Example component demonstrating Neynar SDK usage

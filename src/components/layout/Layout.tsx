@@ -3,7 +3,7 @@
 import { ReactNode } from "react";
 import { Footer } from "./Footer";
 import { Navbar } from "./Navbar";
-import { Banner } from "./banner";
+import { Banner } from "./Banner";
 
 interface LayoutProps {
   children: ReactNode;
