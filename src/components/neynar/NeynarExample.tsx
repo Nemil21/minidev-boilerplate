@@ -24,12 +24,12 @@ export function NeynarExample() {
     try {
       await addMiniApp();
       console.log("Mini app add request sent successfully!");
-    } catch (error: any) {
-      if (error?.name === "AddMiniApp.RejectedByUser") {
+    } catch (error: unknown) {
+      if (error instanceof Error && error.name === "AddMiniApp.RejectedByUser") {
         console.log("User cancelled adding mini app");
-      } else {
-        console.error("Error adding mini app:", error);
+        return;
       }
+      console.error("Error adding mini app:", error);
     }
   };
 
