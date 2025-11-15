@@ -23,6 +23,12 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Farcaster Miniapp",
   description: "A web3 miniapp for Farcaster",
+  openGraph: {
+    images: ["/og.png"],
+  },
+  twitter: {
+    images: ["/og.png"],
+  },
 };
 
 export default function RootLayout({
