@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useAccount } from "wagmi";
+import { useAccount, useConnect } from "wagmi";
 import { sdk } from "@farcaster/miniapp-sdk";
 
 /**
  * Unified user hook that works for both Farcaster miniapp and regular browser environments
+ * 
+ * IMPORTANT: For Farcaster miniapps, wallet connection is AUTOMATIC via the SDK.
+ * DO NOT add ConnectWallet buttons or manual wallet connection UI.
  *
  * Usage:
  * ```tsx
@@ -17,7 +20,7 @@ import { sdk } from "@farcaster/miniapp-sdk";
  *   if (isLoading) return <div>Loading...</div>;
  *
  *   if (isMiniApp) {
- *     return <div>Hello {username}!</div>;
+ *     return <div>Hello {username}! Wallet: {address}</div>;
  *   } else {
  *     return <div>Wallet: {address}</div>;
  *   }
@@ -54,6 +57,7 @@ export interface UserData {
   // Meta information
   isMiniApp: boolean;
   isLoading: boolean;
+  isWalletConnected: boolean;
   error?: string;
 }
 
@@ -61,10 +65,12 @@ export function useUser(): UserData {
   const [userData, setUserData] = useState<UserData>({
     isMiniApp: false,
     isLoading: true,
+    isWalletConnected: false,
   });
 
-  // Wagmi hook for wallet connection (used in regular browser)
+  // Wagmi hooks for wallet connection
   const { address: walletAddress, isConnected } = useAccount();
+  const { connect, connectors } = useConnect();
 
   useEffect(() => {
     let isMounted = true;
@@ -98,9 +104,37 @@ export function useUser(): UserData {
                 );
               }
 
+              // AUTO-CONNECT WALLET via Farcaster SDK ethProvider
+              // This is the key for blockchain functionality in Farcaster miniapps
+              // No ConnectWallet button needed - this happens automatically!
+              let connectedAddress = farcasterUser.primaryAddress || apiUserData?.primaryAddress;
+              
+              try {
+                // Request wallet access from Farcaster SDK
+                const ethProvider = sdk.wallet.ethProvider;
+                if (ethProvider) {
+                  const accounts = await ethProvider.request({ 
+                    method: 'eth_requestAccounts' 
+                  }) as string[];
+                  
+                  if (accounts && accounts.length > 0) {
+                    connectedAddress = accounts[0] as `0x${string}`;
+                    console.log('✅ Farcaster wallet connected:', connectedAddress);
+                    
+                    // Connect wagmi to the farcasterMiniApp connector
+                    const farcasterConnector = connectors.find(c => c.id === 'farcasterMiniApp');
+                    if (farcasterConnector && !isConnected) {
+                      connect({ connector: farcasterConnector });
+                    }
+                  }
+                }
+              } catch (walletError) {
+                console.warn('Wallet connection skipped (user may have declined or no wallet):', walletError);
+                // Not an error - user might not have a wallet or declined
+              }
+
               setUserData({
-                address:
-                  farcasterUser.primaryAddress || apiUserData?.primaryAddress,
+                address: connectedAddress,
                 fid: farcasterUser.fid,
                 username: farcasterUser.username,
                 displayName: farcasterUser.displayName,
@@ -108,6 +142,7 @@ export function useUser(): UserData {
                 location: farcasterUser.location,
                 isMiniApp: true,
                 isLoading: false,
+                isWalletConnected: !!connectedAddress,
               });
 
               // Signal that the app is ready
@@ -116,6 +151,7 @@ export function useUser(): UserData {
               setUserData({
                 isMiniApp: true,
                 isLoading: false,
+                isWalletConnected: false,
                 error: "Unable to get user data from Farcaster",
               });
             }
@@ -125,6 +161,7 @@ export function useUser(): UserData {
               setUserData({
                 isMiniApp: true,
                 isLoading: false,
+                isWalletConnected: false,
                 error: "Farcaster authentication failed",
               });
             }
@@ -136,6 +173,7 @@ export function useUser(): UserData {
               address: isConnected && walletAddress ? walletAddress as `0x${string}` : undefined,
               isMiniApp: false,
               isLoading: false,
+              isWalletConnected: isConnected,
             });
           }
         }
@@ -145,6 +183,7 @@ export function useUser(): UserData {
           setUserData({
             isMiniApp: false,
             isLoading: false,
+            isWalletConnected: false,
             error: "Failed to initialize user data",
           });
         }
@@ -156,7 +195,7 @@ export function useUser(): UserData {
     return () => {
       isMounted = false;
     };
-  }, [walletAddress, isConnected]);
+  }, [walletAddress, isConnected, connect, connectors]);
 
   return userData;
 }

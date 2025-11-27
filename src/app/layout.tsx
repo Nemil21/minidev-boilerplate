@@ -21,8 +21,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Farcaster Miniapp",
-  description: "A web3 miniapp for Farcaster",
+  // TODO: Replace with your app name and description based on user intent
+  title: "My App",
+  description: "A miniapp built with MiniDev",
   openGraph: {
     images: ["/og.png"],
   },
